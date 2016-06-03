@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 2.8.12)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
 
 project(zlib C)
@@ -188,7 +188,9 @@ endif(MINGW)
 add_library(zlib SHARED ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
 add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
 set_target_properties(zlib PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
+set_target_properties(zlib PROPERTIES EXPORT_NAME ZLIB)
 set_target_properties(zlib PROPERTIES SOVERSION 1)
+set_target_properties(zlibstatic PROPERTIES EXPORT_NAME ZLIBSTATIC)
 
 if(NOT CYGWIN)
     # This property causes shared libraries on Linux to have the full version
@@ -214,6 +216,7 @@ endif()
 
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
     install(TARGETS zlib zlibstatic
+        EXPORT ZLIB
         RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )
@@ -249,3 +252,14 @@ if(HAVE_OFF64_T)
     target_link_libraries(minigzip64 zlib)
     set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
 endif()
+
+target_include_directories(zlib INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${INSTALL_INC_DIR}>)
+target_include_directories(zlibstatic INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${INSTALL_INC_DIR}>)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(zlib-config.cmake.in zlib-config.cmake INSTALL_DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zlib-config.cmake DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION})
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/zlib-config-version.cmake VERSION ${VERSION} COMPATIBILITY ExactVersion)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zlib-config-version.cmake DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION})
+install(EXPORT ZLIB DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION} NAMESPACE ZLIB:: FILE zlib-export.cmake)
