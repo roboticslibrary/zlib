@@ -234,6 +234,10 @@ if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL )
     install(FILES ${ZLIB_PC} DESTINATION "${INSTALL_PKGCONFIG_DIR}" COMPONENT development)
 endif()
 
+if(MSVC AND NOT CMAKE_VERSION VERSION_LESS 3.1)
+    install(FILES $<TARGET_PDB_FILE:zlib> DESTINATION ${INSTALL_BIN_DIR} CONFIGURATIONS Debug RelWithDebInfo COMPONENT debug)
+endif()
+
 #============================================================================
 # Example binaries
 #============================================================================
