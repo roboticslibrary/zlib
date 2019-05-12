@@ -185,10 +185,12 @@ if(MINGW)
     set(ZLIB_DLL_SRCS ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj)
 endif(MINGW)
 
-add_library(zlib SHARED ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
-add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
-set_target_properties(zlib PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
-set_target_properties(zlib PROPERTIES SOVERSION 1)
+add_library(ZLIB SHARED ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+add_library(ZLIBSTATIC STATIC ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+set_target_properties(ZLIB PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
+set_target_properties(ZLIB PROPERTIES SOVERSION 1)
+set_target_properties(ZLIB PROPERTIES OUTPUT_NAME zlib)
+set_target_properties(ZLIBSTATIC PROPERTIES OUTPUT_NAME zlibstatic)
 
 if(NOT CYGWIN)
     # This property causes shared libraries on Linux to have the full version
@@ -198,28 +200,28 @@ if(NOT CYGWIN)
     #
     # This has no effect with MSVC, on that platform the version info for
     # the DLL comes from the resource file win32/zlib1.rc
-    set_target_properties(zlib PROPERTIES VERSION ${ZLIB_FULL_VERSION})
+    set_target_properties(ZLIB PROPERTIES VERSION ${ZLIB_FULL_VERSION})
 endif()
 
 if(UNIX)
     # On unix-like platforms the library is almost always called libz
-   set_target_properties(zlib zlibstatic PROPERTIES OUTPUT_NAME z)
+   set_target_properties(ZLIB ZLIBSTATIC PROPERTIES OUTPUT_NAME z)
    if(NOT APPLE)
-     set_target_properties(zlib PROPERTIES LINK_FLAGS "-Wl,--version-script,\"${CMAKE_CURRENT_SOURCE_DIR}/zlib.map\"")
+     set_target_properties(ZLIB PROPERTIES LINK_FLAGS "-Wl,--version-script,\"${CMAKE_CURRENT_SOURCE_DIR}/zlib.map\"")
    endif()
 elseif(BUILD_SHARED_LIBS AND WIN32)
     # Creates zlib1.dll when building shared library version
-    set_target_properties(zlib PROPERTIES SUFFIX "1.dll")
+    set_target_properties(ZLIB PROPERTIES SUFFIX "1.dll")
 endif()
 
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
-    install(TARGETS zlib zlibstatic
-        EXPORT zlib
+    install(TARGETS ZLIB ZLIBSTATIC
+        EXPORT ZLIB
         RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT runtime
         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT development
         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT runtime NAMELINK_SKIP)
-    install(TARGETS	zlib
-        EXPORT zlib
+    install(TARGETS	ZLIB
+        EXPORT ZLIB
         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT development NAMELINK_ONLY)
 endif()
 if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL )
@@ -233,7 +235,7 @@ if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL )
 endif()
 
 if(MSVC AND ${CMAKE_MAJOR_VERSION} GREATER 2 AND ${CMAKE_MINOR_VERSION} GREATER 0)
-    install(FILES $<TARGET_PDB_FILE:zlib> DESTINATION ${INSTALL_BIN_DIR} CONFIGURATIONS Debug RelWithDebInfo COMPONENT debug)
+    install(FILES $<TARGET_PDB_FILE:ZLIB> DESTINATION ${INSTALL_BIN_DIR} CONFIGURATIONS Debug RelWithDebInfo COMPONENT debug)
 endif()
 
 #============================================================================
@@ -241,25 +243,25 @@ endif()
 #============================================================================
 
 add_executable(example test/example.c)
-target_link_libraries(example zlib)
+target_link_libraries(example ZLIB)
 add_test(example example)
 
 add_executable(minigzip test/minigzip.c)
-target_link_libraries(minigzip zlib)
+target_link_libraries(minigzip ZLIB)
 
 if(HAVE_OFF64_T)
     add_executable(example64 test/example.c)
-    target_link_libraries(example64 zlib)
+    target_link_libraries(example64 ZLIB)
     set_target_properties(example64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
     add_test(example64 example64)
 
     add_executable(minigzip64 test/minigzip.c)
-    target_link_libraries(minigzip64 zlib)
+    target_link_libraries(minigzip64 ZLIB)
     set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
 endif()
 
-target_include_directories(zlib INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${INSTALL_INC_DIR}>)
-target_include_directories(zlibstatic INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${INSTALL_INC_DIR}>)
+target_include_directories(ZLIB INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${INSTALL_INC_DIR}>)
+target_include_directories(ZLIBSTATIC INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${INSTALL_INC_DIR}>)
 
 include(CMakePackageConfigHelpers)
 
@@ -267,7 +269,7 @@ configure_package_config_file(zlib-config.cmake.in zlib-config.cmake INSTALL_DES
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zlib-config.cmake DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION} COMPONENT development)
 write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/zlib-config-version.cmake VERSION ${VERSION} COMPATIBILITY ExactVersion)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zlib-config-version.cmake DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION} COMPONENT development)
-install(EXPORT zlib DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION} NAMESPACE zlib:: FILE zlib-export.cmake COMPONENT development)
+install(EXPORT ZLIB DESTINATION ${INSTALL_LIB_DIR}/cmake/zlib-${VERSION} NAMESPACE ZLIB:: FILE zlib-export.cmake COMPONENT development)
 
 set(CPACK_COMPONENT_DEVELOPMENT_DEPENDS runtime)
 set(CPACK_COMPONENT_PROGRAMS_DEPENDS runtime)
